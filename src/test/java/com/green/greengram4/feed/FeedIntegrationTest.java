@@ -32,7 +32,7 @@ public class FeedIntegrationTest extends BaseIntegrationTest {
         dto.setIuser(1);
         dto.setContents("통합 테스트 작업 중");
         dto.setLocation("그린컴퓨터학원");
-        dto.setPics(pics);
+        //dto.setPics(pics);
 
         String json = om.writeValueAsString(dto);
         System.out.println("json : " + json);

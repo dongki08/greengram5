@@ -3,9 +3,12 @@ package com.green.greengram4.user;
 import com.green.greengram4.common.ResVo;
 import com.green.greengram4.user.model.*;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @RestController
@@ -23,9 +26,19 @@ public class UserController {
 
     @PostMapping("/signin")
     @Operation(summary = "인증", description = "아이디/비번을 활용한 인증처리")
-    public UserSigninVo postSignin(@RequestBody UserSigninDto dto) {
+    public UserSigninVo postSignin(HttpServletRequest req, HttpServletResponse res,@RequestBody UserSigninDto dto) {
         log.info("dto: {}", dto);
-        return service.signin(dto);  //result - 1: 성공, 2: 아이디 없음, 3: 비밀번호 틀림
+        return service.signin(req, res, dto);  //result - 1: 성공, 2: 아이디 없음, 3: 비밀번호 틀림
+    }
+
+    @PostMapping("/signout")
+    public ResVo postSignout(HttpServletResponse res) {
+        return service.signout(res);
+    }
+
+    @GetMapping("/refresh-token")
+    public UserSigninVo getRefreshToken(HttpServletRequest req) {
+        return service.getRefreshToken(req);
     }
 
     @GetMapping
@@ -41,8 +54,8 @@ public class UserController {
     }
 
     @PatchMapping("/pic")
-    public ResVo patchUserPic(@RequestBody UserPicPatchDto dto) {
-        return service.patchUserPic(dto);
+    public UserPicPatchDto patchUserPic(@RequestPart MultipartFile pic) {
+        return service.patchUserPic(pic);
     }
 
     //--------------- follow

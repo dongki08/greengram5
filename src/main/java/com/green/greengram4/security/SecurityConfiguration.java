@@ -29,11 +29,20 @@ public class SecurityConfiguration {
                                                                     , "/error"
                                                                     , "/err"
                                                                     , "/"
+                                                                    , "/pic/**"
+                                                                    , "/feed"
+                                                                    , "/feed/**"
+                                                                    , "/profile"
+                                                                    , "/profile/**"
+                                                                    , "/fimg/**"
+                                                                    , "/css/**"
+                                                                    , "/static/**"
                                                                     , "/index.html"
                                                                     , "/static/**"
                                                                     , "/swagger.html"
                                                                     , "/swagger-ui/**"
                                                                     , "/v3/api-docs/**"
+                                                                    , "/api/user/refresh-token"
                 ).permitAll().anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

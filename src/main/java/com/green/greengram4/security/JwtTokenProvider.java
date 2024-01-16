@@ -5,21 +5,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.green.greengram4.common.AppProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
-import jakarta.servlet.http.HttpServlet;
+import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.beans.factory.annotation.Value;
+
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.security.Key;
+import javax.crypto.spec.SecretKeySpec;
 import java.util.Date;
 
 @Slf4j
@@ -29,16 +27,15 @@ public class JwtTokenProvider {
 
     private final ObjectMapper om;
     private final AppProperties appProperties;
-    private Key key;
+    private SecretKeySpec secretKeySpec;
 
 
     @PostConstruct //bean등록 후 di 주입이 이뤄지고 나서 호출
     public void init() {
-        log.info("secret : {}", appProperties.getJwt().getSecret());
-        byte[] keyBytes = Decoders.BASE64.decode(appProperties.getJwt().getSecret());
-        log.info("keyBytes : {}", keyBytes);
-        this.key = Keys.hmacShaKeyFor(keyBytes);
+        this.secretKeySpec = new SecretKeySpec(appProperties.getJwt().getSecret().getBytes(),
+                SignatureAlgorithm.HS256.getJcaName());
     }
+
     public String generateAccessToken(MyPrincipal principal) {
         return generateToken(principal, appProperties.getJwt().getAccessTokenExpiry());
     }
@@ -46,12 +43,13 @@ public class JwtTokenProvider {
     public String generateRefreshToken(MyPrincipal principal) {
         return generateToken(principal, appProperties.getJwt().getRefreshTokenExpiry());
     }
+
     private String generateToken(MyPrincipal principal, long tokenValidMs) {
         return Jwts.builder()
                 .claims(createClaims(principal))
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + tokenValidMs))
-                .signWith(this.key)
+                .signWith(secretKeySpec)
                 .compact();
     }
 
@@ -88,11 +86,12 @@ public class JwtTokenProvider {
     }
 
     private Claims getAllClaims(String token) {
-        return Jwts.parser()
-                .setSigningKey(key)
+        return Jwts
+                .parser()
+                .verifyWith(secretKeySpec)
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     public Authentication getAuthentication(String token) {
@@ -103,7 +102,7 @@ public class JwtTokenProvider {
                 : new UsernamePasswordAuthenticationToken(userDetails,"",userDetails.getAuthorities());
     }
 
-    private UserDetails getUserDetailsFromToken(String token) {
+    public UserDetails getUserDetailsFromToken(String token) {
         try {
             Claims claims = getAllClaims(token);
             String json = (String) claims.get("user");
