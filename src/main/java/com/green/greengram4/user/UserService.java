@@ -79,6 +79,7 @@ public class UserService {
                 .accessToken(at)
                 .build();
     }
+
     public ResVo signout(HttpServletResponse res) {
         cookieUtils.deleteCookie(res ,"rt");
         return new ResVo(1);
@@ -112,7 +113,6 @@ public class UserService {
                 .build();
     }
 
-
     public UserInfoVo getUserInfo(UserInfoSelDto dto) {
         return mapper.selUserInfo(dto);
     }
@@ -125,8 +125,9 @@ public class UserService {
     public UserPicPatchDto patchUserPic(MultipartFile pic) {
         UserPicPatchDto dto = new UserPicPatchDto();
         dto.setIuser(authenticationFacade.getLoginUserPk());
-        String target = "/user/" + dto.getIuser();
-        String saveFileNm = myFileUtils.transferTo(pic, target);
+        String path = "/user/" + dto.getIuser();
+        myFileUtils.delFolderTrigger(path);
+        String saveFileNm = myFileUtils.transferTo(pic, path);
         dto.setPic(saveFileNm);
         int affectedRows = mapper.updUserPic(dto);
         return dto;
