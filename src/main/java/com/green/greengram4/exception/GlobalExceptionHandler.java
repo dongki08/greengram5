@@ -10,10 +10,11 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Object> handleIllegalArgument(IllegalArgumentException e) {
         log.warn("handleIllegalArgument", e);
-        return handleExceptionInternal(CommonErrorCode.INVALID_PARAMETER, e.getMessage());
+        return handleExceptionInternal(CommonErrorCode.INVALID_PARAMETER);
     }
 
     @ExceptionHandler(Exception.class)

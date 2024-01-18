@@ -1,6 +1,8 @@
 package com.green.greengram4.user;
 
 import com.green.greengram4.common.*;
+import com.green.greengram4.exception.AuthErrorCode;
+import com.green.greengram4.exception.RestApiException;
 import com.green.greengram4.security.AuthenticationFacade;
 import com.green.greengram4.security.JwtTokenProvider;
 import com.green.greengram4.security.MyPrincipal;
@@ -56,10 +58,10 @@ public class UserService {
 
         UserEntity entity = mapper.selUser(sDto);
         if(entity == null) {
-            return UserSigninVo.builder().result(Const.LOGIN_NO_UID).build();
+            throw new RestApiException((AuthErrorCode.NOT_EXIST_USER_ID));
             //} else if(!BCrypt.checkpw(dto.getUpw(), entity.getUpw())) {
-        }else if(!passwordEncoder.matches(dto.getUpw(), entity.getUpw())) {
-            return UserSigninVo.builder().result(Const.LOGIN_DIFF_UPW).build();
+        }else if(!passwordEncoder.matches(dto.getUpw(), entity.getUpw())) { //비밀번호
+            throw new RestApiException(AuthErrorCode.VALID_PASSWORD);
         }
         MyPrincipal mp = new MyPrincipal(entity.getIuser());
         String at = jwtTokenProvider.generateAccessToken(mp);
