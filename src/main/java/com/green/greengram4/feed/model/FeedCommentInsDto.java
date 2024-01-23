@@ -13,11 +13,11 @@ public class FeedCommentInsDto {
     @JsonIgnore
     private int iuser;
     
-    @Min(1)
+    @Min(value = 1, message = "ifeed값은 1이상이여야 합니다")
     private int ifeed;
 
-    @Size(min = 3)
-    @NotEmpty
+    @Size(min = 3, message = "댓글 내용을 3자리 이상이여야 합니다.")
+    @NotEmpty(message = "댓글 내용을 입력하세요.")
     private String comment;
 }
 
