@@ -80,6 +80,7 @@ class FeedControllerTest {
 
         FeedSelVo vo1 = new FeedSelVo();
         vo1.setIfeed(2);
+        vo1.setContents("바이");
         list.add(vo1);
 
 
