@@ -45,6 +45,7 @@ public class SecurityConfiguration {
                                                                     , "/swagger-ui/**"
                                                                     , "/v3/api-docs/**"
                                                                     , "/api/user/refresh-token"
+                                                                    , "/api/open/**"
                 ).permitAll().anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
