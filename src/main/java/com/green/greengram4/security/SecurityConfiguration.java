@@ -3,6 +3,7 @@ package com.green.greengram4.security;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -24,29 +25,19 @@ public class SecurityConfiguration {
                 .httpBasic(http -> http.disable())
                 .formLogin(form -> form.disable())
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/user/signin"
-                                                                    , "/api/user/signup"
-                                                                    , "/error"
-                                                                    , "/err"
-                                                                    , "/"
-                                                                    , "/pic/**"
-                                                                    , "/signin"
-                                                                    , "/sugnup"
-                                                                    , "/feed"
-                                                                    , "/feed/**"
-                                                                    , "/profile"
-                                                                    , "/pro" + "file/**"
-                                                                    , "/fimg/**"
-                                                                    , "/css/**"
-                                                                    , "/static/**"
-                                                                    , "/index.html"
-                                                                    , "/static/**"
-                                                                    , "/swagger.html"
-                                                                    , "/swagger-ui/**"
-                                                                    , "/v3/api-docs/**"
-                                                                    , "/api/user/refresh-token"
-                                                                    , "/api/open/**"
-                ).permitAll().anyRequest().authenticated()
+                .authorizeHttpRequests(auth -> auth.requestMatchers(
+                          "/api/feed"
+                        , "/api/feed/comment"
+                        , "/api/dm"
+                        , "/api/dm/msg"
+                        ).authenticated() // 위 주소로 들어오는건 다 로그인되어야한다
+                        .requestMatchers(HttpMethod.POST, "/api/user/signout"
+                                                        , "/api/user/follow"
+                        ).authenticated() // post를 제외한 위 주소로 들어오면 허용
+                        .requestMatchers(HttpMethod.GET, "/api/user").authenticated() //이 get 주소로 들어오는 건 로그인 처리가 되어야한다
+                        .requestMatchers(HttpMethod.PATCH, "/api/user/pic").authenticated() // 이 patch 주소로 들어오는 것도 로그인 처리가 되어야한다.
+                        .requestMatchers(HttpMethod.GET, "/api/feed/fav").hasAnyRole("ADMIN")
+                        .anyRequest().permitAll() //
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(execpt -> {

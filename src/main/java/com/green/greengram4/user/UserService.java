@@ -20,6 +20,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -63,9 +67,14 @@ public class UserService {
         }else if(!passwordEncoder.matches(dto.getUpw(), entity.getUpw())) { //비밀번호
             throw new RestApiException(AuthErrorCode.VALID_PASSWORD);
         }
-        MyPrincipal mp = new MyPrincipal(entity.getIuser());
-        String at = jwtTokenProvider.generateAccessToken(mp);
-        String rt = jwtTokenProvider.generateRefreshToken(mp);
+        MyPrincipal myPrincipal = MyPrincipal.builder()
+                .iuser(entity.getIuser())
+                .build();
+
+        myPrincipal.getRoles().add(entity.getRole());
+
+        String at = jwtTokenProvider.generateAccessToken(myPrincipal);
+        String rt = jwtTokenProvider.generateRefreshToken(myPrincipal);
 
         //rt > cookie에 담을꺼임
         int rtCookieMaxAge = appProperties.getJwt().getRefreshTokenCookieMaxAge();

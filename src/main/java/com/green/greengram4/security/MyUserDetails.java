@@ -4,9 +4,11 @@ import lombok.Builder;
 import lombok.Data;
 
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 @Data
 @Builder
@@ -16,7 +18,14 @@ public class MyUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+        if(myPrincipal == null) {
+            return null;
+        }
+        return this.myPrincipal.getRoles().stream()
+                //.map(SimpleGrantedAuthority::new) 가공없다면 이렇게 써도됨
+                //.map(() -> new SimpleGrantedAuthority())
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+                .collect(Collectors.toList());
     }
 
     @Override
