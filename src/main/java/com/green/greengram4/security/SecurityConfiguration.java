@@ -1,5 +1,9 @@
 package com.green.greengram4.security;
 
+import com.green.greengram4.oauth2.CustomeOAuth2UserService;
+import com.green.greengram4.oauth2.OAuth2AuthenticationFailureHandler;
+import com.green.greengram4.oauth2.OAuth2AuthenticationRequestBasedOnCookieRepository;
+import com.green.greengram4.oauth2.OAuth2AuthenticationSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,6 +22,11 @@ import java.security.Security;
 public class SecurityConfiguration {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
+    private final OAuth2AuthenticationRequestBasedOnCookieRepository oAuth2AuthenticationRequestBasedOnCookieRepository;
+    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+    private final CustomeOAuth2UserService customeOAuth2UserService;
+
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
@@ -44,6 +53,14 @@ public class SecurityConfiguration {
                     execpt.authenticationEntryPoint(new JwtAuthenticationEntryPoint())
                             .accessDeniedHandler(new JwtAccessDeniedHandler());
                 })
+                .oauth2Login(oauth2 -> oauth2.authorizationEndpoint(auth ->
+                        auth.baseUri("/oauth2/authorization")
+                                .authorizationRequestRepository(oAuth2AuthenticationRequestBasedOnCookieRepository))
+                .redirectionEndpoint(redirecttion -> redirecttion.baseUri("/*/oauth2/code/*"))
+                        .userInfoEndpoint(userInfo -> userInfo.userService(customeOAuth2UserService))
+                        .successHandler(oAuth2AuthenticationSuccessHandler)
+                        .failureHandler(oAuth2AuthenticationFailureHandler)
+                )
                 .build();
     }
 

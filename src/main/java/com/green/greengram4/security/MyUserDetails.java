@@ -1,20 +1,25 @@
 package com.green.greengram4.security;
 
+import com.green.greengram4.user.model.UserModel;
 import lombok.Builder;
 import lombok.Data;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Data
-@Builder
-public class MyUserDetails implements UserDetails {
+@Builder //userdetails 로컬 로그인, oauth2user 소셜 로그인
+public class MyUserDetails implements UserDetails, OAuth2User {
 
     private MyPrincipal myPrincipal;
+    private Map<String, Object> attributes;
+    private UserModel userModel;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -35,7 +40,7 @@ public class MyUserDetails implements UserDetails {
 
     @Override
     public String getUsername() {
-        return null;
+        return userModel == null ? null : userModel.getUid();
     }
 
     @Override
@@ -56,5 +61,10 @@ public class MyUserDetails implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    @Override
+    public String getName() {
+        return null;
     }
 }

@@ -21,7 +21,11 @@ app:
     token-type: Bearer
     access-token-expiry: 7200000
     refresh-token-expiry: 1296000000
-
+  oauth2:
+    authorized-redirect-uris:
+      - http://localhost:8080/oauth/redirect
+      - http://192.168.0.144:5221/oauth/redirect
+      - http://localhost:3000/oauth/redirect
 file:
   dir: D:/download/greengram4/
 
@@ -41,20 +45,20 @@ spring:
       client:
         registration:
           google:
-            clientId:
-            clientSecret:
+            clientId: 231512412412512512
+            clientSecret: 123412f12313541431
             scope:
               - email
               - profile
           facebook:
-            clientId:
-            clientSecret:
+            clientId: 46634735624512
+            clientSecret: 32523523642525add24
             scope:
               - email
               - public_profile
           naver:
-            client-id:
-            client-secret:
+            client-id: UYDLOVAXXtS7lvQhB53p
+            client-secret: C5P95eBkNF
             #clientAuthenticationMethod: client_secret_post
             authorization-grant-type: authorization_code
             redirect-uri: http://localhost:8080/login/oauth2/code/naver
@@ -64,8 +68,8 @@ spring:
               # - profile_image
             client-name: Naver
           kakao:
-            client-id: cda26f7fed69daf12c76c17bbb6ac929
-            client-secret: OjIGWqSdAvSMDeb1nNaTzokMHNz5Hiqr
+            client-id: 06904354643a157cda43d72b3caff095
+            client-secret: 0oYB2ZEi7vvoLk9mwGFCRdgmSV6bipMh
             clientAuthenticationMethod: client_secret_post
             authorizationGrantType: authorization_code
             #redirectUri: "{baseUrl}/{action}/oauth2/code/{registrationId}"
@@ -73,7 +77,6 @@ spring:
             scope:
               - profile_nickname
               - profile_image
-              - account_email
             clientName: Kakao
         provider:
           naver:
@@ -95,7 +98,7 @@ springdoc:
     path: /swagger.html
 
 server:
-  port: 8082
+  port: 8080
 
 fcm:
   certification: serviceAccountKey.json
@@ -122,3 +125,20 @@ spring:
       on-profile: "prod2"
 server:
   port: 8082
+
+---
+spring:
+  config:
+    activate:
+      on-profile: "jpa"
+  datasource:
+    url: jdbc:log4jdbc:mariadb://localhost:3306/greengram5_jpa
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+---
