@@ -6,10 +6,10 @@ import lombok.Data;
 @Data
 @Schema(title = "회원가입 데이터")
 public class UserSignupDto {
-    @Schema(title = "유저 아이디", example = "mic")
+    @Schema(title = "유저 아이디", example = "박동현")
     private String uid;
 
-    @Schema(title = "유저 비밀번호")
+    @Schema(title = "유저 비밀번호", example = "1212")
     private String upw;
     private String nm;
     private String pic;

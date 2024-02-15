@@ -3,10 +3,16 @@ package com.green.greengram4.entity;
 import com.green.greengram4.common.ProviderTypeEnum;
 import com.green.greengram4.common.RoleEnum;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
 
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "t_user", uniqueConstraints = {
         @UniqueConstraint( columnNames = { "provider_type", "uid"} )
@@ -17,7 +23,7 @@ public class UserEntity extends BaseEntity{
     @GeneratedValue(strategy = GenerationType.IDENTITY) //오토인크리먼트 IDENTITY(MY SQL 전용)
     private Long iuser;
 
-    @Column(length = 10, name = "provider_type", nullable = false)
+    @Column(length = 10, name = "provider_type", nullable = false )
     @Enumerated(value = EnumType.STRING) //enum타입으로 바꾼다
     @ColumnDefault("'LOCAL'") //기본값 로컬
     private ProviderTypeEnum providerType;
