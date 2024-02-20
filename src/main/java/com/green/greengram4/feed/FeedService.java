@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -90,9 +91,10 @@ public class FeedService {
 //        return fp;
 //    }
 
-
+    @Transactional
     public List<FeedSelVo> getFeedAll(FeedSelDto dto, Pageable pageable) {
         List<FeedEntity> feedEntityList = null;
+        AtomicInteger isMoreComment = new AtomicInteger(0);
         if (dto.getIsFavList() == 0 && dto.getTargetIuser() > 0) {
             UserEntity userEntity = new UserEntity();
             userEntity.setIuser((long)dto.getTargetIuser());
@@ -101,6 +103,11 @@ public class FeedService {
         }
         return feedEntityList == null
                 ? new ArrayList() : feedEntityList.stream().map(item -> {
+
+                    List<String> picList = item.getFeedPicsEntityList()
+                            .stream()
+                            .map(pics -> pics.getPic())
+                            .collect(Collectors.toList());
 
             List<FeedCommentSelVo> cmtList = commentRepository.findAllTop4ByFeedEntity(item)
                     .stream()
@@ -115,6 +122,14 @@ public class FeedService {
                                 .build()
 
             ).collect(Collectors.toList());
+            if(cmtList.size() > 3) {
+                isMoreComment.set(1);
+                cmtList.remove(cmtList.size() - 1);
+            }else {
+                isMoreComment.set(0);
+            }
+            //cmtList가 4개이면 > isMoreComment = 1, cmtList에 마지막 하나는 제거
+            //else > isMoreComment = 0, cmtList는 변화가 없다.
 
                     return FeedSelVo.builder()
                             .ifeed(item.getIfeed().intValue())
@@ -124,8 +139,11 @@ public class FeedService {
                             .writerIuser(item.getUserEntity().getIuser().intValue())
                             .writerNm(item.getUserEntity().getNm())
                             .writerPic(item.getUserEntity().getPic())
+                            .isMoreComment(isMoreComment.intValue())
+                            .pics(picList)
                             .comments(cmtList)
                             .build();
+
 
                 }).collect(Collectors.toList());
     }
