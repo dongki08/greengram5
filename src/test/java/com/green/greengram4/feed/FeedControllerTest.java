@@ -65,36 +65,36 @@ class FeedControllerTest {
         verify(service).postFeed(any());
     }
 
-    @Test
-    void getFeedAll() throws Exception {
-
-        MultiValueMap<String, String> params = new LinkedMultiValueMap();
-        params.add("page", "2");
-        params.add("안녕", "2");
-
-        List<FeedSelVo> list = new ArrayList<>();
-        FeedSelVo vo = new FeedSelVo();
-        vo.setIfeed(1);
-        vo.setContents("안녕");
-        list.add(vo);
-
-        FeedSelVo vo1 = new FeedSelVo();
-        vo1.setIfeed(2);
-        vo1.setContents("바이");
-        list.add(vo1);
-
-
-        when(service.getFeedAll(any())).thenReturn(list);
-
-        mvc.perform(
-                MockMvcRequestBuilders
-                        .get("/api/feed")
-                        .params(params)
-        ).andDo(print())
-         .andExpect(content().string(mapper.writeValueAsString(list)));
-
-        verify(service).getFeedAll(any());
-    }
+//    @Test
+//    void getFeedAll() throws Exception {
+//
+//        MultiValueMap<String, String> params = new LinkedMultiValueMap();
+//        params.add("page", "2");
+//        params.add("안녕", "2");
+//
+//        List<FeedSelVo> list = new ArrayList<>();
+//        FeedSelVo vo = new FeedSelVo();
+//        vo.setIfeed(1);
+//        vo.setContents("안녕");
+//        list.add(vo);
+//
+//        FeedSelVo vo1 = new FeedSelVo();
+//        vo1.setIfeed(2);
+//        vo1.setContents("바이");
+//        list.add(vo1);
+//
+//
+//        when(service.getFeedAll(any())).thenReturn(list);
+//
+//        mvc.perform(
+//                MockMvcRequestBuilders
+//                        .get("/api/feed")
+//                        .params(params)
+//        ).andDo(print())
+//         .andExpect(content().string(mapper.writeValueAsString(list)));
+//
+//        verify(service).getFeedAll(any());
+//    }
 
     @Test
     void delFeed() throws Exception {

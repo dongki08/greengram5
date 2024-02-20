@@ -6,7 +6,6 @@ import com.green.greengram4.common.ResVo;
 import com.green.greengram4.entity.FeedEntity;
 import com.green.greengram4.entity.FeedPicEntity;
 import com.green.greengram4.entity.UserEntity;
-import com.green.greengram4.exception.AuthErrorCode;
 import com.green.greengram4.exception.FeedErrorCode;
 import com.green.greengram4.exception.RestApiException;
 import com.green.greengram4.feed.model.*;
@@ -14,12 +13,13 @@ import com.green.greengram4.security.AuthenticationFacade;
 import com.green.greengram4.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -34,14 +34,17 @@ public class FeedService {
     private final MyFileUtils myFileUtils;
     private final FeedRepository feedRepository;
     private final UserRepository userRepository;
+    private final FeedCommentRepository commentRepository;
 
     @Transactional
     public FeedPicsInsDto postFeed(FeedInsDto dto) {
+
         if(dto.getPics() == null) {
             throw new RestApiException(FeedErrorCode.PICS_MORE_THEN_ONE);
         }
 
         UserEntity entity = userRepository.getReferenceById((long)authenticationFacade.getLoginUserPk());
+
         FeedEntity feedEntity = new FeedEntity();
         feedEntity.setContents(dto.getContents());
         feedEntity.setLocation(dto.getLocation());
@@ -87,29 +90,68 @@ public class FeedService {
 //        return fp;
 //    }
 
-    public List<FeedSelVo> getFeedAll(FeedSelDto dto) {
-        List<FeedSelVo> list = mapper.selFeedAll(dto);
-        //feedselvo 타입 리스트안에 selfeedall 쿼리문을 넣는다
 
-        FeedCommentSelDto fcDto = new FeedCommentSelDto();
-        fcDto.setStartIdx(0);
-        fcDto.setRowCount(Const.FEED_COMMENT_FIRST_CNT);
+    public List<FeedSelVo> getFeedAll(FeedSelDto dto, Pageable pageable) {
+        List<FeedEntity> feedEntityList = null;
+        if (dto.getIsFavList() == 0 && dto.getTargetIuser() > 0) {
+            UserEntity userEntity = new UserEntity();
+            userEntity.setIuser((long)dto.getTargetIuser());
+            feedEntityList = feedRepository.findAllByUserEntityOrderByIfeedDesc(userEntity, pageable);
 
-        for(FeedSelVo vo : list) {
-            List<String> pics = picsMapper.selFeedPicsAll(vo.getIfeed());
-            vo.setPics(pics);
-
-            fcDto.setIfeed(vo.getIfeed());
-            List<FeedCommentSelVo> comments = commentMapper.selFeedCommentAll(fcDto);
-            vo.setComments(comments);
-
-            if(comments.size() == Const.FEED_COMMENT_FIRST_CNT) {
-                vo.setIsMoreComment(1);
-                comments.remove(comments.size() - 1);
-            }
         }
-        return list;
+        return feedEntityList == null
+                ? new ArrayList() : feedEntityList.stream().map(item -> {
+
+            List<FeedCommentSelVo> cmtList = commentRepository.findAllTop4ByFeedEntity(item)
+                    .stream()
+                    .map(cmt ->
+                        FeedCommentSelVo.builder()
+                                .ifeedComment(cmt.getIfeedComment().intValue())
+                                .comment(cmt.getComment())
+                                .createdAt(cmt.getCreatedAt().toString())
+                                .writerIuser(cmt.getUserEntity().getIuser().intValue())
+                                .writerNm(cmt.getUserEntity().getNm())
+                                .writerPic(cmt.getUserEntity().getPic())
+                                .build()
+
+            ).collect(Collectors.toList());
+
+                    return FeedSelVo.builder()
+                            .ifeed(item.getIfeed().intValue())
+                            .contents(item.getContents())
+                            .location(item.getLocation())
+                            .createdAt(item.getCreatedAt().toString())
+                            .writerIuser(item.getUserEntity().getIuser().intValue())
+                            .writerNm(item.getUserEntity().getNm())
+                            .writerPic(item.getUserEntity().getPic())
+                            .comments(cmtList)
+                            .build();
+
+                }).collect(Collectors.toList());
     }
+//    public List<FeedSelVo> getFeedAll(FeedSelDto dto) {
+//        List<FeedSelVo> list = mapper.selFeedAll(dto);
+//        //feedselvo 타입 리스트안에 selfeedall 쿼리문을 넣는다
+//
+//        FeedCommentSelDto fcDto = new FeedCommentSelDto();
+//        fcDto.setStartIdx(0);
+//        fcDto.setRowCount(Const.FEED_COMMENT_FIRST_CNT);
+//
+//        for(FeedSelVo vo : list) {
+//            List<String> pics = picsMapper.selFeedPicsAll(vo.getIfeed());
+//            vo.setPics(pics);
+//
+//            fcDto.setIfeed(vo.getIfeed());
+//            List<FeedCommentSelVo> comments = commentMapper.selFeedCommentAll(fcDto);
+//            vo.setComments(comments);
+//
+//            if(comments.size() == Const.FEED_COMMENT_FIRST_CNT) {
+//                vo.setIsMoreComment(1);
+//                comments.remove(comments.size() - 1);
+//            }
+//        }
+//        return list;
+//    }
 
     public ResVo delFeed(FeedDelDto dto) {
         //1 이미지

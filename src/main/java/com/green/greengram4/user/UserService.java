@@ -199,7 +199,7 @@ public class UserService {
     public UserPicPatchDto patchUserPic(MultipartFile pic) {
         Long iuser = (long)authenticationFacade.getLoginUserPk();
         UserEntity entity = repository.getReferenceById(iuser);
-        String path = "/user" + iuser;
+        String path = "/user/" + iuser;
         myFileUtils.delFolderTrigger(path);
         String savedPicFileNm = myFileUtils.transferTo(pic, path);
         entity.setPic(savedPicFileNm);

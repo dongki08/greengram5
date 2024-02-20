@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 
 @Data
 @Entity
-@Table(name = "t_feed_pic")
+@Table(name = "t_feed_pics")
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

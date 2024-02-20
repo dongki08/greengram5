@@ -45,7 +45,7 @@ public class SecurityConfiguration {
                         ).authenticated() // post를 제외한 위 주소로 들어오면 허용
                         .requestMatchers(HttpMethod.GET, "/api/user").authenticated() //이 get 주소로 들어오는 건 로그인 처리가 되어야한다
                         .requestMatchers(HttpMethod.PATCH, "/api/user/pic").authenticated() // 이 patch 주소로 들어오는 것도 로그인 처리가 되어야한다.
-                        .requestMatchers(HttpMethod.GET, "/api/feed/fav").hasAnyRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/feed/fav").hasAnyRole("USER")
                         .anyRequest().permitAll() //
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
