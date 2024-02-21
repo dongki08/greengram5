@@ -4,6 +4,7 @@ import com.green.greengram4.common.Const;
 import com.green.greengram4.common.MyFileUtils;
 import com.green.greengram4.common.ResVo;
 import com.green.greengram4.entity.FeedEntity;
+import com.green.greengram4.entity.FeedFavIds;
 import com.green.greengram4.entity.FeedPicEntity;
 import com.green.greengram4.entity.UserEntity;
 import com.green.greengram4.exception.FeedErrorCode;
@@ -36,6 +37,7 @@ public class FeedService {
     private final FeedRepository feedRepository;
     private final UserRepository userRepository;
     private final FeedCommentRepository commentRepository;
+    private final FeedFavRepository feedFavRepository;
 
     @Transactional
     public FeedPicsInsDto postFeed(FeedInsDto dto) {
@@ -104,6 +106,11 @@ public class FeedService {
         return feedEntityList == null
                 ? new ArrayList() : feedEntityList.stream().map(item -> {
 
+            FeedFavIds feedFavIds = new FeedFavIds();
+            feedFavIds.setIuser((long)authenticationFacade.getLoginUserPk());
+            feedFavIds.setIfeed(item.getIfeed());
+                    int isFav = feedFavRepository.findById(feedFavIds).isPresent() ? 1 : 0;
+
                     List<String> picList = item.getFeedPicsEntityList()
                             .stream()
                             .map(pics -> pics.getPic())
@@ -142,6 +149,7 @@ public class FeedService {
                             .isMoreComment(isMoreComment.intValue())
                             .pics(picList)
                             .comments(cmtList)
+                            .isFav(isFav)
                             .build();
 
 
