@@ -94,27 +94,43 @@ public class FeedService {
     public List<FeedSelVo> getFeedAll(FeedSelDto dto, Pageable pageable) {
         long loginIuser = authenticationFacade.getLoginUserPk();
         dto.setLoginedIuser(loginIuser);
-        List<FeedEntity> list = feedRepository.selFeedAll(dto, pageable);
+        final List<FeedEntity> list = feedRepository.selFeedAll(dto, pageable);
 
-        List<FeedPicEntity> picList = feedRepository.selFeedPicsAll(list);
-        List<FeedFavEntity> favList = feedRepository.selFeedFavAllByMe(list, loginIuser);
+        final List<FeedPicEntity> picList = feedRepository.selFeedPicsAll(list);
+        final List<FeedFavEntity> favList = dto.getIsFavList() == 1 ? null : feedRepository.selFeedFavAllByMe(list, loginIuser);
+        final List<FeedCommentSelVo> cmtList = commentMapper.selFeedCommentEachTop4(list);
 
-        return list.stream().map(item -> FeedSelVo.builder()
-                .ifeed(item.getIfeed().intValue())
-                .contents(item.getContents())
-                .location(item.getLocation())
-                .createdAt(item.getCreatedAt().toString())
-                .writerIuser(item.getUserEntity().getIuser().intValue())
-                .writerNm(item.getUserEntity().getNm())
-                .writerPic(item.getUserEntity().getPic())
-                .pics(picList
-                        .stream()
-                        .filter(pic -> pic.getIfeed().getIfeed() == item.getIfeed())
-                        .map(pic -> pic.getPic())
-                        .collect(Collectors.toList()))
-                .isFav(favList.stream().anyMatch(fav ->
-                        fav.getIfeed().getIfeed() == item.getIfeed()) ? 1 : 0)
-                .build()
+        return list.stream().map(item -> {
+            List<FeedCommentSelVo> eachCommentList = cmtList
+                            .stream()
+                            .filter(cmt -> cmt.getIfeed() == item.getIfeed())
+                            .collect(Collectors.toList());
+
+            int isMoreComment = 0;
+            if(eachCommentList.size() == 4) {
+                isMoreComment = 1;
+                eachCommentList.remove(eachCommentList.size() - 1);
+            }
+
+            return FeedSelVo.builder()
+                    .ifeed(item.getIfeed().intValue())
+                    .contents(item.getContents())
+                    .location(item.getLocation())
+                    .createdAt(item.getCreatedAt().toString())
+                    .writerIuser(item.getUserEntity().getIuser().intValue())
+                    .writerNm(item.getUserEntity().getNm())
+                    .writerPic(item.getUserEntity().getPic())
+                    .pics(picList
+                            .stream()
+                            .filter(pic -> pic.getIfeed().getIfeed() == item.getIfeed())
+                            .map(pic -> pic.getPic())
+                            .collect(Collectors.toList()))
+                    .isFav(favList == null ? 1 : favList.stream().anyMatch(fav ->
+                            fav.getIfeed().getIfeed() == item.getIfeed()) ? 1 : 0)
+                    .comments(eachCommentList)
+                    .isMoreComment(isMoreComment)
+                    .build();
+        }
         ).collect(Collectors.toList());
     }
 
@@ -180,6 +196,7 @@ public class FeedService {
 //
 //                }).collect(Collectors.toList());
 //    }
+
 //    public List<FeedSelVo> getFeedAll(FeedSelDto dto) {
 //        List<FeedSelVo> list = mapper.selFeedAll(dto);
 //        //feedselvo 타입 리스트안에 selfeedall 쿼리문을 넣는다
