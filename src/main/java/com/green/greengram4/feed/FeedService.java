@@ -3,10 +3,7 @@ package com.green.greengram4.feed;
 import com.green.greengram4.common.Const;
 import com.green.greengram4.common.MyFileUtils;
 import com.green.greengram4.common.ResVo;
-import com.green.greengram4.entity.FeedEntity;
-import com.green.greengram4.entity.FeedFavIds;
-import com.green.greengram4.entity.FeedPicEntity;
-import com.green.greengram4.entity.UserEntity;
+import com.green.greengram4.entity.*;
 import com.green.greengram4.exception.FeedErrorCode;
 import com.green.greengram4.exception.RestApiException;
 import com.green.greengram4.feed.model.*;
@@ -95,11 +92,30 @@ public class FeedService {
 
     @Transactional
     public List<FeedSelVo> getFeedAll(FeedSelDto dto, Pageable pageable) {
-        List<FeedSelVo> list = feedRepository.selFeedAll(
-                authenticationFacade.getLoginUserPk()
-                , dto.getTargetIuser()
-                , pageable);
-        return list;
+        long loginIuser = authenticationFacade.getLoginUserPk();
+        dto.setLoginedIuser(loginIuser);
+        List<FeedEntity> list = feedRepository.selFeedAll(dto, pageable);
+
+        List<FeedPicEntity> picList = feedRepository.selFeedPicsAll(list);
+        List<FeedFavEntity> favList = feedRepository.selFeedFavAllByMe(list, loginIuser);
+
+        return list.stream().map(item -> FeedSelVo.builder()
+                .ifeed(item.getIfeed().intValue())
+                .contents(item.getContents())
+                .location(item.getLocation())
+                .createdAt(item.getCreatedAt().toString())
+                .writerIuser(item.getUserEntity().getIuser().intValue())
+                .writerNm(item.getUserEntity().getNm())
+                .writerPic(item.getUserEntity().getPic())
+                .pics(picList
+                        .stream()
+                        .filter(pic -> pic.getIfeed().getIfeed() == item.getIfeed())
+                        .map(pic -> pic.getPic())
+                        .collect(Collectors.toList()))
+                .isFav(favList.stream().anyMatch(fav ->
+                        fav.getIfeed().getIfeed() == item.getIfeed()) ? 1 : 0)
+                .build()
+        ).collect(Collectors.toList());
     }
 
 //    @Transactional

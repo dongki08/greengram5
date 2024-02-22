@@ -17,7 +17,7 @@ public class FeedEntity extends BaseEntity{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long ifeed;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)//지연로딩(LAZY) 기본패치값 EAGER
     @JoinColumn(name = "iuser", nullable = false)
     private UserEntity userEntity;
 
@@ -31,8 +31,5 @@ public class FeedEntity extends BaseEntity{
     @OneToMany(mappedBy = "ifeed", cascade = CascadeType.PERSIST)
     private List<FeedPicEntity> feedPicsEntityList = new ArrayList<>();
 
-    @ToString.Exclude
-    @OneToMany(mappedBy = "ifeed")
-    private List<FeedFavEntity> feedFavList = new ArrayList<>();
 
 }
